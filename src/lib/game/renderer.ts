@@ -1,20 +1,42 @@
 // Модуль для отрисовки игровых элементов
 import { Graphics, Container } from 'pixi.js';
-import { CELL_SIZE, GRID_COLOR, PATH_COLOR, PLAYER_COLOR, STROKE_WIDTH, GRID_SIZE, Cell } from './constants';
+import { 
+    CELL_SIZE, 
+    GRID_COLOR, 
+    PATH_COLOR, 
+    PLAYER_COLOR, 
+    STROKE_WIDTH, 
+    GRID_SIZE, 
+    Cell, 
+    FOG_COLOR,
+    FOG_ALPHA
+} from './constants';
 
 // Интерфейс для стратегии отрисовки ячеек
 export interface ICellRenderStrategy {
-    renderCell(graphics: Graphics, cell: Cell, x: number, y: number): void;
+    renderCell(graphics: Graphics, cell: Cell, screenX: number, screenY: number): void;
 }
 
-// Стандартная стратегия отрисовки ячеек
-export class DefaultCellRenderStrategy implements ICellRenderStrategy {
-    renderCell(graphics: Graphics, cell: Cell, x: number, y: number): void {
-        if (cell.event.getType() !== 'EMPTY') {
-            // Новый API Pixi.js 8: сначала создаем фигуру, затем заливаем
+// Стандартная стратегия отрисовки ячеек с поддержкой тумана войны
+export class FogOfWarCellRenderStrategy implements ICellRenderStrategy {
+    renderCell(graphics: Graphics, cell: Cell, screenX: number, screenY: number): void {
+        // Если ячейка никогда не была видна, рисуем туман войны
+        if (cell.visible === undefined || cell.visible === false) {
             graphics.rect(
-                x * CELL_SIZE + STROKE_WIDTH, 
-                y * CELL_SIZE + STROKE_WIDTH, 
+                screenX * CELL_SIZE, 
+                screenY * CELL_SIZE, 
+                CELL_SIZE, 
+                CELL_SIZE
+            );
+            graphics.fill({ color: FOG_COLOR, alpha: FOG_ALPHA });
+            return;
+        }
+        
+        // Если ячейка видна и не пустая, рисуем её содержимое
+        if (cell.event.getType() !== 'EMPTY') {
+            graphics.rect(
+                screenX * CELL_SIZE + STROKE_WIDTH, 
+                screenY * CELL_SIZE + STROKE_WIDTH, 
                 CELL_SIZE - STROKE_WIDTH * 2, 
                 CELL_SIZE - STROKE_WIDTH * 2
             );
@@ -25,6 +47,7 @@ export class DefaultCellRenderStrategy implements ICellRenderStrategy {
 
 export class Renderer {
     private cellEventsGraphics: Graphics;
+    private fogGraphics: Graphics;
     private gridGraphics: Graphics;
     private pathGraphics: Graphics;
     private playerGraphics: Graphics;
@@ -36,15 +59,17 @@ export class Renderer {
     ) {
         // Инициализация графических объектов
         this.cellEventsGraphics = new Graphics();
+        this.fogGraphics = new Graphics();
         this.gridGraphics = new Graphics();
         this.pathGraphics = new Graphics();
         this.playerGraphics = new Graphics();
         
         // Установка стратегии отрисовки ячеек
-        this.cellRenderStrategy = cellRenderStrategy || new DefaultCellRenderStrategy();
+        this.cellRenderStrategy = cellRenderStrategy || new FogOfWarCellRenderStrategy();
 
         // Добавление графических объектов в контейнер
         this.gameContainer.addChild(this.cellEventsGraphics);
+        this.gameContainer.addChild(this.fogGraphics);
         this.gameContainer.addChild(this.gridGraphics);
         this.gameContainer.addChild(this.pathGraphics);
         this.gameContainer.addChild(this.playerGraphics);
@@ -57,10 +82,12 @@ export class Renderer {
 
     public drawCellEvents(gameBoard: Cell[][]): void {
         this.cellEventsGraphics.clear();
-        for (let y = 0; y < GRID_SIZE; y++) {
-            for (let x = 0; x < GRID_SIZE; x++) {
-                const cell = gameBoard[y][x];
-                this.cellRenderStrategy.renderCell(this.cellEventsGraphics, cell, x, y);
+        this.fogGraphics.clear();
+        
+        for (let screenY = 0; screenY < GRID_SIZE; screenY++) {
+            for (let screenX = 0; screenX < GRID_SIZE; screenX++) {
+                const cell = gameBoard[screenY][screenX];
+                this.cellRenderStrategy.renderCell(this.cellEventsGraphics, cell, screenX, screenY);
             }
         }
     }
@@ -81,13 +108,16 @@ export class Renderer {
         }
     }
 
-    public drawPlayer(x: number, y: number): void {
+    public drawPlayer(worldX: number, worldY: number): void {
         this.playerGraphics.clear();
+        
+        // Игрок всегда в центре видимой области
+        const centerScreenPos = Math.floor(GRID_SIZE / 2);
         
         // Новый API Pixi.js 8: сначала создаем фигуру, затем заливаем
         this.playerGraphics.circle(
-            x * CELL_SIZE + CELL_SIZE / 2, 
-            y * CELL_SIZE + CELL_SIZE / 2, 
+            centerScreenPos * CELL_SIZE + CELL_SIZE / 2, 
+            centerScreenPos * CELL_SIZE + CELL_SIZE / 2, 
             CELL_SIZE / 3
         );
         this.playerGraphics.fill({ color: PLAYER_COLOR });
@@ -96,21 +126,37 @@ export class Renderer {
     public drawPath(pathThisTurn: { x: number, y: number }[]): void {
         this.pathGraphics.clear();
         
-        if (pathThisTurn.length > 0) {
-            this.pathGraphics.setStrokeStyle(CELL_SIZE / 6);
-            this.pathGraphics.stroke({ color: PATH_COLOR, alpha: 0.6 });
+        if (pathThisTurn.length <= 1) return;
+        
+        const centerScreenPos = Math.floor(GRID_SIZE / 2);
+        const playerWorldX = pathThisTurn[pathThisTurn.length - 1].x;
+        const playerWorldY = pathThisTurn[pathThisTurn.length - 1].y;
+        
+        this.pathGraphics.setStrokeStyle(CELL_SIZE / 6);
+        this.pathGraphics.stroke({ color: PATH_COLOR, alpha: 0.6 });
+        
+        // Начинаем с первой точки пути
+        const firstPoint = pathThisTurn[0];
+        // Преобразуем мировые координаты в экранные
+        const firstScreenX = centerScreenPos + (firstPoint.x - playerWorldX);
+        const firstScreenY = centerScreenPos + (firstPoint.y - playerWorldY);
+        
+        this.pathGraphics.moveTo(
+            firstScreenX * CELL_SIZE + CELL_SIZE / 2, 
+            firstScreenY * CELL_SIZE + CELL_SIZE / 2
+        );
+        
+        // Рисуем линии ко всем остальным точкам пути
+        for (let i = 1; i < pathThisTurn.length; i++) {
+            const point = pathThisTurn[i];
+            // Преобразуем мировые координаты в экранные
+            const screenX = centerScreenPos + (point.x - playerWorldX);
+            const screenY = centerScreenPos + (point.y - playerWorldY);
             
-            this.pathGraphics.moveTo(
-                pathThisTurn[0].x * CELL_SIZE + CELL_SIZE / 2, 
-                pathThisTurn[0].y * CELL_SIZE + CELL_SIZE / 2
+            this.pathGraphics.lineTo(
+                screenX * CELL_SIZE + CELL_SIZE / 2, 
+                screenY * CELL_SIZE + CELL_SIZE / 2
             );
-            
-            for (let i = 1; i < pathThisTurn.length; i++) {
-                this.pathGraphics.lineTo(
-                    pathThisTurn[i].x * CELL_SIZE + CELL_SIZE / 2, 
-                    pathThisTurn[i].y * CELL_SIZE + CELL_SIZE / 2
-                );
-            }
         }
     }
 }

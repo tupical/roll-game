@@ -46,8 +46,8 @@ export class InputHandler {
             }
             
             if (dx !== 0 || dy !== 0) {
-                // Передаем актуальное игровое поле вместо пустого массива
-                const moveResult = this.gameState.movePlayer(dx, dy, this.gameBoard.getBoard());
+                // Теперь movePlayer не требует передачи игрового поля
+                const moveResult = this.gameState.movePlayer(dx, dy);
                 
                 // Вызываем обновление только если движение было успешным
                 if (moveResult.moved) {

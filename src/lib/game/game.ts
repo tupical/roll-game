@@ -190,6 +190,9 @@ export class Game {
         else if (action === 'move') {
             const playerPos = this.gameState.getPlayerPosition();
             
+            // Обновляем центр игрового поля при движении игрока
+            this.gameBoard.updateCenter(playerPos.x, playerPos.y);
+            
             // Обновляем UI после движения
             this.stepsLeftText.text = `Шагов осталось: ${this.gameState.getStepsLeft()}`;
             
@@ -197,6 +200,9 @@ export class Game {
             const cell = this.gameBoard.getCell(playerPos.x, playerPos.y);
             const eventResult = this.gameState.triggerCellEvent(cell);
             this.eventText.text = eventResult.message;
+            
+            // Перерисовываем поле с учетом новой видимости
+            this.renderer.drawCellEvents(this.gameBoard.getBoard());
             
             // Проверка окончания хода
             if (this.gameState.getStepsTaken() >= this.gameState.getCurrentRoll()) {

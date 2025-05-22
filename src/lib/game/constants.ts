@@ -23,16 +23,27 @@ export interface Cell {
     x: number;
     y: number;
     event: ICellEvent;
+    visible?: boolean; // Флаг видимости ячейки (для тумана войны)
 }
 
-export const GRID_SIZE = 10;
+// Константы для игрового поля
+export const GRID_SIZE = 21; // Нечетное число для центрирования игрока
+export const VISIBLE_RADIUS = 3; // Радиус видимости вокруг игрока
 export const CELL_SIZE = 50;
 export const PLAYER_COLOR = 0x00FF00;
 export const GRID_COLOR = 0xFFFFFF;
 export const PATH_COLOR = 0x0000FF;
+export const FOG_COLOR = 0x333333; // Цвет тумана войны
+export const FOG_ALPHA = 0.7; // Прозрачность тумана войны
 export const STROKE_WIDTH = 1;
 export const APP_WIDTH = GRID_SIZE * CELL_SIZE;
 export const APP_HEIGHT = GRID_SIZE * CELL_SIZE + 150;
+
+// Координаты для бесконечного поля
+export interface WorldCoord {
+    x: number;
+    y: number;
+}
 
 // Базовый класс для событий ячеек
 export abstract class BaseCellEvent implements ICellEvent {

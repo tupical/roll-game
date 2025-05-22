@@ -1,5 +1,5 @@
 // Модуль для управления игровым состоянием
-import { Cell, IPlayer } from './constants';
+import { Cell, IPlayer, WorldCoord } from './constants';
 
 export class GameState implements IPlayer {
     private playerX: number = 0;
@@ -8,7 +8,7 @@ export class GameState implements IPlayer {
     private die1Value: number = 0;
     private die2Value: number = 0;
     private stepsTakenThisTurn: number = 0;
-    private pathThisTurn: { x: number, y: number }[] = [];
+    private pathThisTurn: WorldCoord[] = [];
     private nextTurnBonusSteps: number = 0;
     private turnsToSkip: number = 0;
 
@@ -24,7 +24,7 @@ export class GameState implements IPlayer {
     }
 
     // Геттеры
-    public getPlayerPosition(): { x: number, y: number } {
+    public getPlayerPosition(): WorldCoord {
         return { x: this.playerX, y: this.playerY };
     }
 
@@ -44,7 +44,7 @@ export class GameState implements IPlayer {
         return this.currentRoll - this.stepsTakenThisTurn;
     }
 
-    public getPath(): { x: number, y: number }[] {
+    public getPath(): WorldCoord[] {
         return this.pathThisTurn;
     }
 
@@ -88,9 +88,9 @@ export class GameState implements IPlayer {
         return { skippingTurn: false };
     }
 
-    public movePlayer(dx: number, dy: number, gameBoard: Cell[][]): { 
+    public movePlayer(dx: number, dy: number): { 
         moved: boolean, 
-        newPosition?: { x: number, y: number },
+        newPosition?: WorldCoord,
         message?: string
     } {
         if (!this.canMove()) {
@@ -99,11 +99,6 @@ export class GameState implements IPlayer {
 
         const newX = this.playerX + dx;
         const newY = this.playerY + dy;
-
-        // Проверка границ
-        if (newX < 0 || newX >= gameBoard[0].length || newY < 0 || newY >= gameBoard.length) {
-            return { moved: false, message: "Нельзя выйти за пределы поля." };
-        }
 
         // Проверка, не посещали ли уже эту клетку в текущем ходу
         if (this.pathThisTurn.some(pos => pos.x === newX && pos.y === newY)) {
