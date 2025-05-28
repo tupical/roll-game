@@ -151,7 +151,7 @@
 
 ### Бэкенд
 - **Основа**: Node.js + TypeScript
-- **Фреймворк**: Express.js / NestJS
+- **Фреймворк**: NestJS
 - **База данных**: MongoDB / PostgreSQL
 - **Аутентификация**: JWT
 - **Реальное время**: Socket.io
