@@ -1,13 +1,10 @@
-import GameComponent from './components/GameComponent';
 import './App.css';
+import Game from './ui/components/Game';
 
-/**
- * The main application component that renders the GameComponent.
- */
 function App() {
   return (
     <div className="App">
-      <GameComponent />
+      <Game />
     </div>
   );
 }
