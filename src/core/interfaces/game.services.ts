@@ -5,7 +5,9 @@ import {
   Direction, 
   DiceRoll, 
   VisibleMap, 
-  GameEvent 
+  GameEvent, 
+  BattleState, // добавлен импорт
+  FogOfWarData // добавлен импорт
 } from './game.models';
 
 export interface IGameService {
@@ -22,12 +24,14 @@ export interface IGameService {
   // Получение данных
   getVisibleMap(): Promise<VisibleMap>;
   getPlayerState(): Promise<Player | null>;
+  getFogOfWar(): Promise<FogOfWarData>; // добавлен метод
   
   // Обработчики событий
   onPlayerUpdate(callback: (player: Player) => void): void;
   onMapUpdate(callback: (map: VisibleMap) => void): void;
   onDiceRolled(callback: (roll: DiceRoll) => void): void;
   onEventTriggered(callback: (event: GameEvent) => void): void;
+  onBattleUpdate(callback: (battle: BattleState) => void): void; // добавлен метод
   onError(callback: (error: { message: string }) => void): void;
   
   // Очистка ресурсов

@@ -5,7 +5,8 @@ export enum CellEventType {
   EMPTY = 'EMPTY',
   BONUS_STEPS = 'BONUS_STEPS',
   DEBUFF_STEPS = 'DEBUFF_STEPS',
-  ENEMY = 'ENEMY'
+  ENEMY = 'ENEMY',
+  UNKNOWN = 'UNKNOWN', // Добавлен новый тип
 }
 
 export enum Direction {
@@ -76,4 +77,14 @@ export interface MoveResult {
   eventTriggered?: boolean;
   eventMessage?: string;
   stepsLeft?: number;
+}
+
+export interface BattleState {
+  enemyCell: { x: number; y: number };
+  enemyHp: number;
+  playerHp: number;
+  turn: 'player' | 'enemy';
+  log: string[];
+  finished: boolean;
+  victory: boolean;
 }

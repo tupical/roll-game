@@ -7,7 +7,9 @@ import {
   VisibleMap, 
   DiceRoll, 
   Direction,
-  FogOfWarData
+  FogOfWarData,
+  CellEventType,
+  BattleState // добавлен импорт
 } from '../../core/interfaces/game.models';
 
 // Интерфейс для контекста игры
@@ -23,7 +25,8 @@ interface GameContextType {
   isConnected: boolean;
   error: string | null;
   isLoading: boolean;
-  
+  battleState: BattleState | null;
+
   // Действия
   rollDice: () => void;
   movePlayer: (direction: Direction) => void;
@@ -31,6 +34,7 @@ interface GameContextType {
   joinWorld: (worldId: string) => Promise<void>;
   createWorld: (name: string) => Promise<World>;
   getWorlds: () => Promise<World[]>;
+  setBattleState: (battle: BattleState | null) => void;
 }
 
 // Создание контекста с начальными значениями
@@ -45,7 +49,8 @@ const GameContext = createContext<GameContextType>({
   isConnected: false,
   error: null,
   isLoading: false,
-  
+  battleState: null,
+  setBattleState: () => {},
   rollDice: () => {},
   movePlayer: () => {},
   endTurn: () => {},
@@ -95,6 +100,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children, gameServic
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [battleState, setBattleState] = useState<BattleState | null>(null);
 
   // Настройка обработчиков событий при монтировании
   useEffect(() => {
@@ -140,6 +146,11 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children, gameServic
     gameService.onEventTriggered((event) => {
       console.log('GameContext: Event triggered', event);
       setEventMessage(event.message);
+      // Если сервер прислал состояние боя, обновляем его
+      if ((event as any).battleState) {
+        setBattleState((event as any).battleState);
+      }
+      // Удалена клиентская логика обновления типа ячейки, теперь только отображение сообщения
     });
 
     // Обработчик ошибок
@@ -147,6 +158,13 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children, gameServic
       console.error('GameContext: Error received', err);
       setError(err.message);
     });
+
+    // Подписка на обновление состояния боя
+    if (gameService.onBattleUpdate) {
+      gameService.onBattleUpdate((battle: BattleState) => {
+        setBattleState(battle);
+      });
+    }
 
     // Очистка обработчиков при размонтировании
     return () => {
@@ -305,6 +323,8 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children, gameServic
     isConnected,
     error,
     isLoading,
+    battleState,
+    setBattleState,
     
     rollDice,
     movePlayer,

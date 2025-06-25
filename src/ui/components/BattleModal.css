@@ -1,0 +1,56 @@
+.battle-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.battle-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px 24px;
+  min-width: 320px;
+  max-width: 90vw;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.2);
+  text-align: center;
+}
+.battle-hp {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 16px;
+  font-size: 1.2em;
+}
+.battle-log {
+  text-align: left;
+  margin-bottom: 16px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.battle-log ul {
+  padding-left: 18px;
+}
+.battle-result {
+  margin-top: 16px;
+}
+.battle-result h3 {
+  margin-bottom: 12px;
+}
+.battle-modal button {
+  padding: 8px 20px;
+  font-size: 1em;
+  border-radius: 6px;
+  border: none;
+  background: #4caf50;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.battle-modal button:hover {
+  background: #388e3c;
+}
+.battle-progress {
+  color: #888;
+  margin-top: 12px;
+}

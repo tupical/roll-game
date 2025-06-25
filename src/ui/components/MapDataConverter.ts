@@ -138,6 +138,8 @@ export class MapDataConverter {
         return COLORS.DEBUFF_STEPS;
       case 'ENEMY':
         return COLORS.ENEMY;
+      case 'UNKNOWN':
+        return 0xAAAAAA; // Серый цвет для неизвестных
       default:
         console.log(`Неизвестный тип события: ${eventType}, используется EMPTY`);
         return COLORS.EMPTY;
