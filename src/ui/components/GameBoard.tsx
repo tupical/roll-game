@@ -3,9 +3,9 @@ import React, { useRef } from 'react';
 import { GameBoardProps } from '../interfaces/ui.interfaces';
 import usePixiRenderer from '../hooks/usePixiRenderer';
 
-const GameBoard: React.FC<GameBoardProps> = ({ visibleMap, player, isLoading }) => {
+const GameBoard: React.FC<GameBoardProps> = ({ visibleMap, player, isLoading, fogOfWar }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { inited } = usePixiRenderer(containerRef, visibleMap || undefined, player || undefined);
+  const { inited } = usePixiRenderer(containerRef, visibleMap || undefined, player || undefined, fogOfWar || undefined);
 
   return (
     <div className="game-board">

@@ -21,6 +21,7 @@ export interface Cell {
   eventType: CellEventType;
   eventValue?: number;
   visible: boolean;
+  explored?: boolean; // Для тумана войны - ячейка была исследована ранее
 }
 
 export interface Player {
@@ -33,6 +34,8 @@ export interface Player {
   pathTaken: WorldCoord[];
   bonusSteps: number;
   turnsToSkip: number;
+  visibleCells?: string[]; // Ячейки, видимые сейчас
+  exploredCells?: string[]; // Ячейки, исследованные ранее (туман войны)
 }
 
 export interface World {
@@ -53,6 +56,12 @@ export interface VisibleMap {
   cells: Cell[];
   centerX: number;
   centerY: number;
+}
+
+export interface FogOfWarData {
+  visibleCells: string[];
+  exploredCells: string[];
+  currentPosition: WorldCoord;
 }
 
 export interface GameEvent {

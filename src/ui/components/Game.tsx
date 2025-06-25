@@ -11,7 +11,7 @@ import GameBoard from './GameBoard';
 import DiceDisplay from './DiceDisplay';
 
 const Game: React.FC = () => {
-  const { player, visibleMap, diceRoll, stepsLeft, eventMessage, isConnected, error, isLoading } = useGame();
+  const { player, visibleMap, fogOfWar, diceRoll, stepsLeft, eventMessage, isConnected, error, isLoading } = useGame();
   const initState = useInitializeGame(); // { initializing: boolean, error? }
 
   useKeyboardControls();
@@ -24,7 +24,7 @@ const Game: React.FC = () => {
     <div className="game-page">
       <GameStatus player={player!} isConnected={isConnected} eventMessage={eventMessage} error={error} />
       {visibleMap && player ? (
-        <GameBoard visibleMap={visibleMap} player={player} />
+        <GameBoard visibleMap={visibleMap} player={player} fogOfWar={fogOfWar} />
       ) : (
         <NoDataScreen player={player} map={visibleMap} />
       )}

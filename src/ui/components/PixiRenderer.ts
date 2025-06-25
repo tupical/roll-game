@@ -102,37 +102,73 @@ export class PixiRenderer implements IRenderer {
     const offsetX = (APP_WIDTH - GRID_SIZE * CELL_SIZE) / 2;
     const offsetY = (APP_HEIGHT - GRID_SIZE * CELL_SIZE) / 2;
     
+    // Подсчитываем статистику для отладки
+    let visibleCount = 0;
+    let exploredCount = 0;
+    let eventsVisible = 0;
+    let eventsExplored = 0;
+    
     for (let y = 0; y < grid.length; y++) {
       for (let x = 0; x < grid[y].length; x++) {
         const cell = grid[y][x];
         const cellX = offsetX + x * CELL_SIZE;
         const cellY = offsetY + y * CELL_SIZE;
-        
+
         // Рисуем базовую ячейку
         graphics.rect(cellX, cellY, CELL_SIZE, CELL_SIZE);
-        
-        if (cell.visible) {
-          if (cell.event.getType() !== 'EMPTY') {
-            console.log(cell, cell.event.getColor(), cell.event.getType(), cell.event.getValue());
-          }
+
+        // Показываем ячейку если она видна сейчас ИЛИ была исследована ранее
+        if (cell.visible || cell.explored) {
+          // Статистика для отладки
+          if (cell.visible) visibleCount++;
+          if (cell.explored) exploredCount++;
+
           const color = cell.event.getColor();
           graphics.fill({ color });
-          
-          // Добавляем маркер для событий
+
+          // Добавляем маркер для событий если они есть
           const eventType = cell.event.getType();
           if (eventType !== 'EMPTY') {
+            // Для видимых ячеек - яркий маркер, для исследованных - затемненный
+            let markerColor, strokeColor;
+            if (cell.visible) {
+              markerColor = 0xFFFFFF;
+              strokeColor = 0x000000;
+            } else if (cell.explored) {
+              markerColor = 0x555555; // Более тёмный маркер для исследованных
+              strokeColor = 0x222222;
+            }
             graphics.circle(cellX + CELL_SIZE / 2, cellY + CELL_SIZE / 2, 8);
-            graphics.fill({ color: 0xFFFFFF });
+            graphics.fill({ color: markerColor });
             graphics.circle(cellX + CELL_SIZE / 2, cellY + CELL_SIZE / 2, 8);
-            graphics.stroke({ width: 2, color: 0x000000 });
+            graphics.stroke({ width: 2, color: strokeColor });
           }
         } else {
+          // Неисследованные области остаются в тумане
           graphics.fill({ color: COLORS.FOG });
         }
-        
+
         graphics.rect(cellX, cellY, CELL_SIZE, CELL_SIZE);
         graphics.stroke({ width: 1, color: COLORS.GRID_LINE });
       }
+    }
+    
+    // Выводим статистику для отладки
+    console.log(`Отладка рендера: видимые=${visibleCount}, исследованные=${exploredCount}, события видимые=${eventsVisible}, события исследованные=${eventsExplored}`);
+    
+    // Для отладки: выводим координаты центра, размеры сетки и fogOfWar
+    if (grid.length && grid[0].length) {
+      const minX = Math.min(...grid[0].map(cell => cell.x));
+      const maxX = Math.max(...grid[0].map(cell => cell.x));
+      const minY = Math.min(...grid.map(row => row[0].y));
+      const maxY = Math.max(...grid.map(row => row[0].y));
+      console.log('[DEBUG] Grid X:', minX, '-', maxX, 'Y:', minY, '-', maxY);
+    }
+    if (grid.length && grid[0].length && grid[0][0] && grid[0][0].explored !== undefined) {
+      const exploredCells = grid.flat().filter(cell => cell.explored).map(cell => `${cell.x},${cell.y}`);
+      const visibleCells = grid.flat().filter(cell => cell.visible).map(cell => `${cell.x},${cell.y}`);
+      console.log('[DEBUG] Explored cells:', exploredCells);
+      console.log('[DEBUG] Visible cells:', visibleCells);
     }
     
     this.gridContainer.addChild(graphics);

@@ -1,9 +1,10 @@
 // Интерфейсы для UI компонентов
-import { DiceRoll, Player, VisibleMap, Direction } from '../../core/interfaces/game.models';
+import { DiceRoll, Player, VisibleMap, Direction, FogOfWarData } from '../../core/interfaces/game.models';
 
 export interface GameBoardProps {
   visibleMap: VisibleMap | null;
   player: Player | null;
+  fogOfWar?: FogOfWarData | null;
   isLoading?: boolean;
 }
 

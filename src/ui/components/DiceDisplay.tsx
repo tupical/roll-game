@@ -15,7 +15,15 @@ const Bonus: React.FC<{ value: number }> = ({ value }) =>
   ) : null;
 
 const DiceDisplay: React.FC<DiceDisplayProps> = ({ diceRoll, stepsLeft }) => {
-  if (!diceRoll) return null;
+  if (!diceRoll) {
+    return (
+      <div className="dice-display">
+        <div className="steps-left">
+          Нажмите R, чтобы сделать ход
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dice-display">

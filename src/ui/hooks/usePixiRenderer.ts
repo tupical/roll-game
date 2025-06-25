@@ -2,11 +2,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { PixiRenderer } from '../components/PixiRenderer';
 import { MapData, MapDataConverter } from '../components/MapDataConverter';
+import { FogOfWarData } from '../../core/interfaces/game.models';
 
 export default function usePixiRenderer(
   containerRef: React.RefObject<HTMLDivElement>,
   visibleMap?: MapData,
-  player?: { position: { x: number; y: number }; pathTaken?: any[] }
+  player?: { position: { x: number; y: number }; pathTaken?: any[] },
+  fogOfWar?: FogOfWarData
 ) {
   const rendererRef = useRef<PixiRenderer>();
   const [inited, setInited] = useState(false);
@@ -27,7 +29,16 @@ export default function usePixiRenderer(
   useEffect(() => {
     if (!inited || !rendererRef.current) return;
     try {
-      const grid = visibleMap ? MapDataConverter.convertToGrid(visibleMap) : [];
+      // Объединяем данные карты с данными тумана войны
+      const mapDataWithFog: MapData = {
+        ...visibleMap,
+        fogOfWar: fogOfWar ? {
+          visibleCells: fogOfWar.visibleCells,
+          exploredCells: fogOfWar.exploredCells
+        } : undefined
+      };
+      
+      const grid = mapDataWithFog ? MapDataConverter.convertToGrid(mapDataWithFog) : [];
       rendererRef.current!.drawCellEvents(grid);
       if (player) {
         rendererRef.current!.drawPlayer(player.position.x, player.position.y);
@@ -36,7 +47,7 @@ export default function usePixiRenderer(
     } catch {
       rendererRef.current!.drawGrid();
     }
-  }, [visibleMap, player, inited]);
+  }, [visibleMap, player, fogOfWar, inited]);
 
   return { inited, renderer: rendererRef.current };
 }

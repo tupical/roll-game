@@ -4,7 +4,7 @@ import { Direction } from '../../core/interfaces/game.models';
 import { useGame } from '../contexts/GameContext';
 
 export const useKeyboardControls = () => {
-  const { stepsLeft, rollDice, movePlayer } = useGame();
+  const { stepsLeft, rollDice, movePlayer, player } = useGame();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -33,8 +33,19 @@ export const useKeyboardControls = () => {
             break;
         }
         
-        if (direction !== null) {
-          movePlayer(direction);
+        if (direction !== null && player) {
+          // Вычисляем следующую позицию
+          const { x, y } = player.position;
+          let nextX = x, nextY = y;
+          if (direction === Direction.UP) nextY -= 1;
+          if (direction === Direction.DOWN) nextY += 1;
+          if (direction === Direction.LEFT) nextX -= 1;
+          if (direction === Direction.RIGHT) nextX += 1;
+          // Проверяем, был ли этот ход уже совершен в этом ходу
+          const alreadyVisited = player.pathTaken?.some(coord => coord.x === nextX && coord.y === nextY);
+          if (!alreadyVisited) {
+            movePlayer(direction);
+          } // иначе просто игнорируем нажатие
         }
       }
     };
@@ -44,5 +55,5 @@ export const useKeyboardControls = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [stepsLeft, rollDice, movePlayer]);
+  }, [stepsLeft, rollDice, movePlayer, player]);
 };

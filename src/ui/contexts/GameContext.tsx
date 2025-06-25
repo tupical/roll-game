@@ -6,7 +6,8 @@ import {
   World, 
   VisibleMap, 
   DiceRoll, 
-  Direction
+  Direction,
+  FogOfWarData
 } from '../../core/interfaces/game.models';
 
 // Интерфейс для контекста игры
@@ -15,6 +16,7 @@ interface GameContextType {
   player: Player | null;
   world: World | null;
   visibleMap: VisibleMap | null;
+  fogOfWar: FogOfWarData | null;
   diceRoll: DiceRoll | null;
   stepsLeft: number;
   eventMessage: string | null;
@@ -36,6 +38,7 @@ const GameContext = createContext<GameContextType>({
   player: null,
   world: null,
   visibleMap: null,
+  fogOfWar: null,
   diceRoll: null,
   stepsLeft: 0,
   eventMessage: null,
@@ -85,6 +88,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children, gameServic
   const [player, setPlayer] = useState<Player | null>(getInitialPlayerState());
   const [world, setWorld] = useState<World | null>(null);
   const [visibleMap, setVisibleMap] = useState<VisibleMap | null>(null);
+  const [fogOfWar, setFogOfWar] = useState<FogOfWarData | null>(null);
   const [diceRoll, setDiceRoll] = useState<DiceRoll | null>(null);
   const [stepsLeft, setStepsLeft] = useState<number>(0);
   const [eventMessage, setEventMessage] = useState<string | null>(null);
@@ -110,12 +114,18 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children, gameServic
         setStepsLeft(updatedPlayer.stepsLeft);
       }
       setIsConnected(true);
+      
+      // Обновляем данные тумана войны при обновлении игрока (после хода)
+      updateFogOfWar();
     });
 
     // Обработчик обновления карты
     gameService.onMapUpdate((updatedMap) => {
       console.log('GameContext: Map update received', updatedMap);
       setVisibleMap(updatedMap);
+      
+      // Туман войны должен обновляться отдельно, не при каждом обновлении карты
+      // updateFogOfWar(); // Убираем автоматическое обновление
     });
 
     // Обработчик броска кубиков
@@ -219,14 +229,20 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children, gameServic
         setWorld({ id: worldId, name: 'Game World' });
         setIsConnected(true);
         
-        // Явно запрашиваем карту после успешного присоединения к миру
+        // Явно запрашиваем карту и данные тумана войны после успешного присоединения к миру
         console.log('GameContext: Requesting visible map after join');
         try {
           const mapData = await gameService.getVisibleMap();
           console.log('GameContext: Received map data', mapData);
           setVisibleMap(mapData);
+          
+          // Получаем данные тумана войны
+          console.log('GameContext: Requesting fog of war data');
+          const fogData = await gameService.getFogOfWar();
+          console.log('GameContext: Received fog of war data', fogData);
+          setFogOfWar(fogData);
         } catch (mapError) {
-          console.error('GameContext: Error getting visible map:', mapError);
+          console.error('GameContext: Error getting visible map or fog of war:', mapError);
           // Не устанавливаем общую ошибку, так как игрок уже присоединился
         }
       } else {
@@ -266,11 +282,23 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children, gameServic
     }
   };
 
+  // Функция для обновления данных тумана войны
+  const updateFogOfWar = async () => {
+    try {
+      const fogData = await gameService.getFogOfWar();
+      console.log('GameContext: Updated fog of war data', fogData);
+      setFogOfWar(fogData);
+    } catch (error) {
+      console.error('GameContext: Error updating fog of war:', error);
+    }
+  };
+
   // Значение контекста
   const value = {
     player,
     world,
     visibleMap,
+    fogOfWar,
     diceRoll,
     stepsLeft,
     eventMessage,

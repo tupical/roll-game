@@ -6,7 +6,8 @@ import {
   Direction, 
   DiceRoll, 
   VisibleMap, 
-  GameEvent 
+  GameEvent,
+  FogOfWarData 
 } from '../../core/interfaces/game.models';
 import { IHttpClient, ISocketClient, IAuthService } from '../../api/interfaces/api.interfaces';
 import { API_CONFIG } from '../../utils/types';
@@ -220,6 +221,22 @@ export class GameService implements IGameService {
       );
     } catch (error) {
       console.error('Error getting player state:', error);
+      return null;
+    }
+  }
+
+  // Получение данных тумана войны
+  public async getFogOfWar(): Promise<FogOfWarData | null> {
+    if (!this.worldId || !this.playerId) {
+      return null;
+    }
+    
+    try {
+      return await this.httpClient.get<FogOfWarData>(
+        `${API_CONFIG.ENDPOINTS.WORLDS}/${this.worldId}/fog-of-war/${this.playerId}`
+      );
+    } catch (error) {
+      console.error('Error getting fog of war data:', error);
       return null;
     }
   }
