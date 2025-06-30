@@ -3,7 +3,14 @@ import React from 'react';
 import { DiceDisplayProps } from '../interfaces/ui.interfaces';
 
 const Die: React.FC<{ value: number }> = ({ value }) => (
-  <div className="dice" data-value={value} />
+  <img
+    className="dice"
+    src={`/assets/dice/${value}.png`}
+    alt={`Кубик со значением ${value}`}
+    width={48}
+    height={48}
+    data-value={value}
+  />
 );
 
 const Bonus: React.FC<{ value: number }> = ({ value }) =>

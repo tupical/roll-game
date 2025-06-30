@@ -1,4 +1,4 @@
-import { COLORS, GRID_SIZE } from '../../utils/types';
+import { GRID_SIZE } from '../../utils/types';
 
 export interface CellEvent {
   getType(): string;
@@ -22,6 +22,7 @@ export interface MapData {
     y: number;
     eventType?: string;
     eventValue?: number;
+    eventColor?: number; // Цвет теперь приходит с сервера
     visible?: boolean;
     explored?: boolean; // Для тумана войны
   }>;
@@ -67,7 +68,7 @@ export class MapDataConverter {
           y: cellY,
           event: {
             getType: () => 'EMPTY',
-            getColor: () => this.getColorForEventType('EMPTY', isVisible, isExplored)
+            getColor: () => 0x000000, // Цвет по умолчанию (например, чёрный)
           },
           visible: isVisible,
           explored: isExplored
@@ -95,8 +96,8 @@ export class MapDataConverter {
             y: cell.y,
             event: {
               getType: () => cell.eventType || 'EMPTY',
-              getColor: () => this.getColorForEventType(cell.eventType || 'EMPTY', isVisible, isExplored),
-              getValue: () => cell.eventValue || 0
+              getColor: () => cell.eventColor ?? 0x000000, // Цвет теперь приходит с сервера
+              getValue: () => cell.eventValue ?? 0
             },
             visible: isVisible,
             explored: isExplored
@@ -110,46 +111,5 @@ export class MapDataConverter {
     }
     
     return grid;
-  }
-  
-  private static getColorForEventType(eventType: string, isVisible: boolean = true, isExplored: boolean = false): number {
-    // Если ячейка не исследована, возвращаем черный цвет (туман войны)
-    if (!isExplored) {
-      return 0x000000; // Черный цвет для неисследованных областей
-    }
-    
-    // Если ячейка исследована, но не видна сейчас, затемняем цвет
-    const baseColor = this.getBaseColorForEventType(eventType);
-    if (!isVisible && isExplored) {
-      // Применяем затемнение к исследованным, но не видимым ячейкам
-      return this.darkenColor(baseColor, 0.5);
-    }
-    
-    return baseColor;
-  }
-  
-  private static getBaseColorForEventType(eventType: string): number {
-    switch (eventType) {
-      case 'EMPTY':
-        return COLORS.EMPTY;
-      case 'BONUS_STEPS':
-        return COLORS.BONUS_STEPS;
-      case 'DEBUFF_STEPS':
-        return COLORS.DEBUFF_STEPS;
-      case 'ENEMY':
-        return COLORS.ENEMY;
-      case 'UNKNOWN':
-        return 0xAAAAAA; // Серый цвет для неизвестных
-      default:
-        console.log(`Неизвестный тип события: ${eventType}, используется EMPTY`);
-        return COLORS.EMPTY;
-    }
-  }
-  
-  private static darkenColor(color: number, factor: number): number {
-    const r = Math.floor(((color >> 16) & 0xFF) * factor);
-    const g = Math.floor(((color >> 8) & 0xFF) * factor);
-    const b = Math.floor((color & 0xFF) * factor);
-    return (r << 16) | (g << 8) | b;
   }
 }

@@ -1,6 +1,6 @@
 import { Application, Container, Graphics, Color } from 'pixi.js';
 import { IRenderer } from '../interfaces/ui.interfaces';
-import { CELL_SIZE, GRID_SIZE, APP_WIDTH, APP_HEIGHT, COLORS } from '../../utils/types';
+import { CELL_SIZE, GRID_SIZE, APP_WIDTH, APP_HEIGHT } from '../../utils/types';
 
 export class PixiRenderer implements IRenderer {
   private app: Application | null = null;
@@ -19,7 +19,7 @@ export class PixiRenderer implements IRenderer {
       await this.app.init({
         width: APP_WIDTH,
         height: APP_HEIGHT,
-        backgroundColor: new Color(COLORS.BACKGROUND).toHex(),
+        backgroundColor: new Color(0x333333).toHex(),
         antialias: true,
       });
 
@@ -85,8 +85,8 @@ export class PixiRenderer implements IRenderer {
         const cellY = offsetY + y * CELL_SIZE;
         
         graphics.rect(cellX, cellY, CELL_SIZE, CELL_SIZE);
-        graphics.fill({ color: COLORS.FOG });
-        graphics.stroke({ width: 1, color: COLORS.GRID_LINE });
+        graphics.fill({ color: 0x333333 });
+        graphics.stroke({ width: 1, color: 0x888888 });
       }
     }
     
@@ -129,13 +129,13 @@ export class PixiRenderer implements IRenderer {
           // Добавляем маркер для событий если они есть
           const eventType = cell.event.getType();
           if (eventType !== 'EMPTY') {
-            // Для видимых ячеек - яркий маркер, для исследованных - затемненный
+            // Для видимых ячеек - яркий маркер, для исследованных - затемнённый
             let markerColor, strokeColor;
             if (cell.visible) {
               markerColor = 0xFFFFFF;
               strokeColor = 0x000000;
             } else if (cell.explored) {
-              markerColor = 0x555555; // Более тёмный маркер для исследованных
+              markerColor = 0x555555;
               strokeColor = 0x222222;
             }
             graphics.circle(cellX + CELL_SIZE / 2, cellY + CELL_SIZE / 2, 8);
@@ -145,11 +145,11 @@ export class PixiRenderer implements IRenderer {
           }
         } else {
           // Неисследованные области остаются в тумане
-          graphics.fill({ color: COLORS.FOG });
+          graphics.fill({ color: 0x333333 });
         }
 
         graphics.rect(cellX, cellY, CELL_SIZE, CELL_SIZE);
-        graphics.stroke({ width: 1, color: COLORS.GRID_LINE });
+        graphics.stroke({ width: 1, color: 0x888888 });
       }
     }
     
@@ -189,7 +189,7 @@ export class PixiRenderer implements IRenderer {
     
     // Рисуем игрока как синий круг в центре ячейки
     graphics.circle(screenX + CELL_SIZE / 2, screenY + CELL_SIZE / 2, CELL_SIZE / 3);
-    graphics.fill({ color: COLORS.PLAYER });
+    graphics.fill({ color: 0x0000FF });
     graphics.circle(screenX + CELL_SIZE / 2, screenY + CELL_SIZE / 2, CELL_SIZE / 3);
     graphics.stroke({ width: 2, color: 0xFFFFFF });
     
@@ -229,11 +229,11 @@ export class PixiRenderer implements IRenderer {
       // Рисуем линию
       graphics.moveTo(screenX, screenY);
       graphics.lineTo(nextScreenX, nextScreenY);
-      graphics.stroke({ width: 3, color: COLORS.PATH });
+      graphics.stroke({ width: 3, color: 0xFFFFFF });
       
       // Рисуем точки пути
       graphics.circle(screenX, screenY, 4);
-      graphics.fill({ color: COLORS.PATH });
+      graphics.fill({ color: 0xFFFFFF });
     }
     
     this.pathContainer.addChild(graphics);
